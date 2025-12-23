@@ -1,4 +1,4 @@
-package com.jayant.user_service.domain.entity;
+package com.jayant.user_service.entity;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
