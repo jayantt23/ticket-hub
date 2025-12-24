@@ -11,10 +11,17 @@ spring:
           enabled: true
           lower-case-service-id: true
       routes:
-        - id: user-service
+        - id: user-service-auth
           uri: lb://USER-SERVICE
           predicates:
-            - Path=/users/**, /auth/**
+            - Path=/auth/**
+        - id: user-service-auth
+          uri: lb://USER-SERVICE
+          predicates:
+            - Path=/users/**
+          filters:
+            - AuthenticationFilter
+
 eureka:
   instance:
     prefer-ip-address: true
@@ -22,3 +29,8 @@ eureka:
   client:
     service-url:
       defaultZone: http://localhost:8761/eureka/
+
+application:
+  security:
+    jwt:
+      secret-key: "2b51c2bb75f61d2e114dd58261ecfef9d278b6452d829a7969de3104c1d74297670a23e664dff16c898a0f8d343f9c23b99756dd9f81f7f2307ac879752fa63d42adb11c44d80262b0365858a458158efebb178315e836ddeb10a2e47c1bdfcac5cb567e64e4ad3b7804da1d9d06526944216dad7fd8f7316d68a68153305d51"
