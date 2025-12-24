@@ -21,6 +21,10 @@ spring:
             - Path=/users/**
           filters:
             - AuthenticationFilter
+        - id: catalog-service
+          uri: lb://CATALOG-SERVICE
+          predicates:
+            - Path=/movies/**
 
 eureka:
   instance:

@@ -4,7 +4,7 @@ import com.jayant.user_service.dto.AuthenticationRequest;
 import com.jayant.user_service.dto.AuthenticationResponse;
 import com.jayant.user_service.dto.RegisterRequest;
 import com.jayant.user_service.entity.Role;
-import com.jayant.user_service.entity.UserEntity;
+import com.jayant.user_service.entity.User;
 import com.jayant.user_service.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -24,7 +24,7 @@ public class AuthService {
     private final AuthenticationManager authenticationManager;
 
     public AuthenticationResponse register(RegisterRequest request) {
-        UserEntity user = UserEntity.builder()
+        User user = User.builder()
                 .name(request.getName())
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
