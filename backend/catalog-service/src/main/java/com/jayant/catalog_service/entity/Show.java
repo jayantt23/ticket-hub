@@ -8,7 +8,13 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "shows")
+@Table(name = "shows",
+        uniqueConstraints = {
+                @UniqueConstraint(
+                        name = "uk_hall_start_time",
+                        columnNames = {"hall_id", "start_time"}
+                )
+        })
 @Getter
 @Setter
 @AllArgsConstructor

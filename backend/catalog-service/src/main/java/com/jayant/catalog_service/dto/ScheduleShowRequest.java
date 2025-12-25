@@ -1,8 +1,10 @@
 package com.jayant.catalog_service.dto;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
@@ -10,8 +12,9 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class ShowDto implements Serializable {
-    private Long id;
+public class ScheduleShowRequest {
+    private Long movieId;
+    private Long hallId;
     private LocalDateTime startTime;
     private BigDecimal basePrice;
 }
