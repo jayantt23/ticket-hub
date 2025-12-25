@@ -7,14 +7,27 @@ import com.jayant.catalog_service.mapper.TheatreMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
+
 public class TheatreMapperImpl implements TheatreMapper {
 
     private final HallMapper hallMapper;
+
+    @Override
+    public Theatre toEntity(TheatreDto theatreDto) {
+        Theatre theatre = new Theatre();
+        theatre.setName(theatreDto.getName());
+        theatre.setCity(theatreDto.getCity());
+        theatre.setAddress(theatreDto.getAddress());
+        theatre.setHalls(new ArrayList<>());
+
+        return theatre;
+    }
 
     @Override
     public TheatreDto toDto(Theatre theatre) {

@@ -8,5 +8,5 @@ public interface TheatreService {
     TheatreDto saveTheatre(TheatreDto theatreDto);
     List<TheatreDto> getAllTheatres();
     List<TheatreDto> getTheatresByCity(String city);
-    TheatreDto getTheatreById(Long theatreId);
+    TheatreDto getTheatreById(Long id);
 }

@@ -19,19 +19,16 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class MovieServiceImpl implements MovieService {
 
-    private final MovieRepository movieRepository;
+    private final MovieRepository repository;
 
     private final MovieMapper mapper;
 
     @Override
     @CacheEvict(value = "movies", allEntries = true)
     public MovieDto saveMovie(MovieDto movieDto) {
-        Movie movie = new Movie();
-        movie.setTitle(movieDto.getTitle());
-        movie.setGenre(movieDto.getGenre());
-        movie.setDescription(movieDto.getDescription());
+        Movie movie = mapper.toEntity(movieDto);
 
-        Movie savedMovie = movieRepository.save(movie);
+        Movie savedMovie = repository.save(movie);
 
         return mapper.toDto(savedMovie);
     }
@@ -40,7 +37,7 @@ public class MovieServiceImpl implements MovieService {
     @Cacheable(value = "movies")
     public List<MovieDto> getAllMovies() {
         log.info("Fetching movies from Database...");
-        return movieRepository.findAll()
+        return repository.findAll()
                 .stream()
                 .map(mapper::toDto)
                 .collect(Collectors.toList());
@@ -49,7 +46,7 @@ public class MovieServiceImpl implements MovieService {
     @Override
     @Cacheable(value = "movies", key = "#id")
     public MovieDto getMovieById(Long id) {
-        return movieRepository.findById(id)
+        return repository.findById(id)
                 .map(mapper::toDto)
                 .orElseThrow(() -> new RuntimeException("Movie not found with id: " + id));
     }
