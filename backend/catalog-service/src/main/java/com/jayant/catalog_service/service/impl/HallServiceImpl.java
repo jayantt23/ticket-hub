@@ -41,8 +41,9 @@ public class HallServiceImpl implements HallService {
     }
 
     @Override
-    @Cacheable(value = "halls", key = "#theatreId")
+    @Cacheable(value = "halls", key = "#theatreId", unless = "#result.isEmpty()")
     public List<HallDto> getHallsByTheatreId(Long theatreId) {
+        log.info("Fetching halls from Database...");
         return hallRepository.findByTheatreId(theatreId)
                 .stream()
                 .map(mapper::toDto)

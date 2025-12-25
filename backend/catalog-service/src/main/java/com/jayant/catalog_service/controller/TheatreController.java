@@ -40,4 +40,5 @@ public class TheatreController {
     public ResponseEntity<TheatreDto> getTheatreById(@PathVariable Long theatreId) {
         return ResponseEntity.ok(theatreService.getTheatreById(theatreId));
     }
+
 }
