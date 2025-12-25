@@ -17,18 +17,19 @@ public class MovieController {
     private final MovieService movieService;
 
     @PostMapping
-    public MovieDto addMovie(@RequestBody MovieDto movie) {
-        return movieService.saveMovie(movie);
+    public ResponseEntity<MovieDto> addMovie(@RequestBody MovieDto movie) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(movieService.saveMovie(movie));
     }
 
     @GetMapping
-    public List<MovieDto> getMovies() {
-        return movieService.getAllMovies();
+    public ResponseEntity<List<MovieDto>> getMovies() {
+        return ResponseEntity.ok(movieService.getAllMovies());
     }
 
     @GetMapping("/{movie_id}")
-    public ResponseEntity<MovieDto> getMovie(@PathVariable("movie_id") Long id) {
-        return new ResponseEntity<>(movieService.getMovieById(id), HttpStatus.OK);
+    public ResponseEntity<MovieDto> getMovie(@PathVariable Long movieId) {
+        return ResponseEntity.ok(movieService.getMovieById(movieId));
     }
 
 }

@@ -24,7 +24,7 @@ spring:
         - id: catalog-service
           uri: lb://CATALOG-SERVICE
           predicates:
-            - Path=/movies/**
+            - Path=/movies/**, /theatres/**
 
 eureka:
   instance:

@@ -8,6 +8,10 @@ import com.jayant.catalog_service.repository.TheatreRepository;
 import com.jayant.catalog_service.service.TheatreService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -23,6 +27,7 @@ public class TheatreServiceImpl implements TheatreService {
     private final TheatreMapper mapper;
 
     @Override
+    @CacheEvict(value = "theatres", allEntries = true)
     public TheatreDto saveTheatre(TheatreDto theatreDto) {
         Theatre theatre = mapper.toEntity(theatreDto);
         Theatre savedTheatre = repository.save(theatre);
@@ -30,15 +35,7 @@ public class TheatreServiceImpl implements TheatreService {
     }
 
     @Override
-    public List<TheatreDto> getAllTheatres() {
-        log.info("Fetching theatres from Database...");
-        return repository.findAll()
-                .stream()
-                .map(mapper::toDto)
-                .collect(Collectors.toList());
-    }
-
-    @Override
+    @Cacheable(value = "theatres", key = "#city", unless = "#result.isEmpty()")
     public List<TheatreDto> getTheatresByCity(String city) {
         log.info("Fetching theatres of " + city + " from Database...");
         return repository.findByCityIgnoreCase(city)
@@ -48,6 +45,13 @@ public class TheatreServiceImpl implements TheatreService {
     }
 
     @Override
+    public Page<TheatreDto> getAllTheatresRaw(Pageable pageable) {
+        return repository.findAll(pageable)
+                .map(mapper::toDto);
+    }
+
+    @Override
+    @Cacheable(value = "theatres", key = "#id")
     public TheatreDto getTheatreById(Long id) {
         return repository.findById(id)
                 .map(mapper::toDto)

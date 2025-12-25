@@ -9,6 +9,8 @@ import com.jayant.catalog_service.repository.TheatreRepository;
 import com.jayant.catalog_service.service.HallService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -26,6 +28,7 @@ public class HallServiceImpl implements HallService {
     private final TheatreRepository theatreRepository;
 
     @Override
+    @CacheEvict(value = "halls", allEntries = true)
     public HallDto saveHall(Long theatreId, HallDto hallDto) {
         Theatre theatre = theatreRepository.findById(theatreId)
                 .orElseThrow(() -> new RuntimeException("Theatre not found with id: " + theatreId));
@@ -38,6 +41,7 @@ public class HallServiceImpl implements HallService {
     }
 
     @Override
+    @Cacheable(value = "halls", key = "#theatreId")
     public List<HallDto> getHallsByTheatreId(Long theatreId) {
         return hallRepository.findByTheatreId(theatreId)
                 .stream()
