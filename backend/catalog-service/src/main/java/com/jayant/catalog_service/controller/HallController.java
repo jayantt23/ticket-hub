@@ -1,6 +1,7 @@
 package com.jayant.catalog_service.controller;
 
 import com.jayant.catalog_service.dto.HallDto;
+import com.jayant.catalog_service.dto.SeatLayout;
 import com.jayant.catalog_service.service.HallService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -27,7 +28,7 @@ public class HallController {
     }
 
     @PutMapping(path = "/halls/{hallId}/seats")
-    public ResponseEntity<HallDto> updateSeats(@PathVariable Long hallId, @RequestBody String seats) {
+    public ResponseEntity<HallDto> updateSeats(@PathVariable Long hallId, @RequestBody SeatLayout seats) {
         return ResponseEntity.ok(hallService.updateSeats(hallId, seats));
     }
 }

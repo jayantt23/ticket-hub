@@ -16,6 +16,6 @@ public class ShowDetailDto {
     private String movieTitle;
     private String theatreName;
     private String hallName;
-    private String seatLayout;
+    private SeatLayout seatLayout;
     private List<String> bookedSeats;
 }

@@ -14,6 +14,6 @@ import java.util.List;
 @Builder
 public class HallDto implements Serializable {
     private Long id;
-    private String seatLayout;
+    private SeatLayout seatLayout;
     private List<ShowDto> shows;
 }

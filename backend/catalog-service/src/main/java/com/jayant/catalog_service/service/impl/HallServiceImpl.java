@@ -1,6 +1,7 @@
 package com.jayant.catalog_service.service.impl;
 
 import com.jayant.catalog_service.dto.HallDto;
+import com.jayant.catalog_service.dto.SeatLayout;
 import com.jayant.catalog_service.entity.Hall;
 import com.jayant.catalog_service.entity.Theatre;
 import com.jayant.catalog_service.mapper.HallMapper;
@@ -51,7 +52,7 @@ public class HallServiceImpl implements HallService {
     }
 
     @Override
-    public HallDto updateSeats(Long hallId, String seats) {
+    public HallDto updateSeats(Long hallId, SeatLayout seats) {
         Hall hall = hallRepository.findById(hallId)
                 .orElseThrow(() -> new RuntimeException("Hall not found with id: " + hallId));
 
