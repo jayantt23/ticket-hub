@@ -29,6 +29,7 @@ public class ShowMapperImpl implements ShowMapper {
                 .theatreName(show.getHall().getTheatre().getName())
                 .hallName("Hall " + show.getHall().getId())
                 .seatLayout(show.getHall().getSeatLayout())
+                .basePrice(show.getBasePrice())
                 .bookedSeats(new ArrayList<>())
                 .build();
     }

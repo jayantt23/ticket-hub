@@ -1,12 +1,14 @@
 package com.jayant.booking_service.client;
 
+import com.jayant.booking_service.dto.ShowDetailsDto;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
-@FeignClient(name = "MOVIE-CATALOG")
+@FeignClient(name = "CATALOG-SERVICE")
 public interface CatalogClient {
 
-    @GetMapping("/shows/{id}/exists")
-    boolean doesShowExist(@PathVariable("id") Long showId);
+    @GetMapping("/shows/{showId}")
+    ShowDetailsDto getShow(@PathVariable("showId") Long showId);
+
 }

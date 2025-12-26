@@ -1,18 +1,12 @@
-package com.jayant.catalog_service.dto;
+package com.jayant.booking_service.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.util.List;
 
 @Data
-@AllArgsConstructor
-@NoArgsConstructor
-@Builder
-public class ShowDetailDto {
+public class ShowDetailsDto {
     private Long showId;
     private String movieTitle;
     private String theatreName;
