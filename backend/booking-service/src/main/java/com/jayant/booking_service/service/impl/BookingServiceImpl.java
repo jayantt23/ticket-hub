@@ -33,12 +33,12 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     @Transactional
-    public BookingResponseDto createBooking(CreateBookingRequest request) {
+    public BookingResponseDto createBooking(CreateBookingRequest request, Long userId) {
 
         boolean locked = redisLockService.acquireLock(
                 request.getShowId(),
                 request.getSeats(),
-                request.getUserId()
+                userId
         );
 
         if(!locked) {
@@ -56,7 +56,7 @@ public class BookingServiceImpl implements BookingService {
             BigDecimal totalAmount = show.getBasePrice().multiply(new BigDecimal(request.getSeats().size()));
 
             Booking booking = new Booking();
-            booking.setUserId(request.getUserId());
+            booking.setUserId(userId);
             booking.setShowId(request.getShowId());
             booking.setStatus(BookingStatus.PENDING);
             booking.setAmount(totalAmount);

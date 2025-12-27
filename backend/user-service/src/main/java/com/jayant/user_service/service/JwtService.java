@@ -20,15 +20,23 @@ public class JwtService {
     private String secretKey;
 
     public String generateToken(UserDetails userDetails) {
-        return generateToken(new HashMap<>(), userDetails);
+
+        Map<String, Object> extraClaims = new HashMap<>();
+
+        if (userDetails instanceof com.jayant.user_service.entity.User customUser) {
+            extraClaims.put("userId", customUser.getId());
+            extraClaims.put("role", customUser.getRole().name());
+        }
+
+        return generateToken(extraClaims, userDetails);
     }
 
-    public String generateToken(Map<String, Objects> extraClaims, UserDetails userDetails) {
+    public String generateToken(Map<String, Object> extraClaims, UserDetails userDetails) {
         return Jwts.builder()
                 .setClaims(extraClaims)
                 .setSubject(userDetails.getUsername())
                 .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 24))
+                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 24))
                 .signWith(getSignInKey(), SignatureAlgorithm.HS256)
                 .compact();
     }

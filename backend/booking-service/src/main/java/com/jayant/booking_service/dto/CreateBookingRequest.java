@@ -14,5 +14,4 @@ import java.util.List;
 public class CreateBookingRequest {
     private Long showId;
     private List<String> seats;
-    private Long userId;
 }

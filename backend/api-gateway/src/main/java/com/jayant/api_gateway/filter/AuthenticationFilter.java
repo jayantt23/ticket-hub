@@ -45,10 +45,13 @@ public class AuthenticationFilter extends AbstractGatewayFilterFactory<Authentic
                 try {
                     jwtUtil.validateToken(authHeader);
 
-                    // String username = jwtUtil.extractUsername(authHeader);
-                    // request = exchange.getRequest().mutate()
-                    //        .header("loggedInUser", username)
-                    //        .build();
+                    String userId = jwtUtil.extractUserId(authHeader);
+                    String role = jwtUtil.extractRole(authHeader);
+
+                     request = exchange.getRequest().mutate()
+                             .header("X-User-Id", userId)
+                             .header("X-User-Role", role)
+                             .build();
 
                 } catch (Exception e) {
                     System.out.println("Invalid Access detected: " + e.getMessage());

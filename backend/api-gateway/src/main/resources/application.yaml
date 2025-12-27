@@ -15,20 +15,30 @@ spring:
           uri: lb://USER-SERVICE
           predicates:
             - Path=/auth/**
-        - id: user-service-auth
+        - id: user-service-users
           uri: lb://USER-SERVICE
           predicates:
             - Path=/users/**
           filters:
             - AuthenticationFilter
-        - id: catalog-service
+        - id: catalog-service-read
           uri: lb://CATALOG-SERVICE
           predicates:
             - Path=/movies/**, /theatres/**, /halls/**, /shows/**
+            - Method=GET
+        - id: catalog-service-write
+          uri: lb://CATALOG-SERVICE
+          predicates:
+            - Path=/movies/**, /theatres/**, /halls/**, /shows/**
+            - Method=POST, PUT, DELETE
+          filters:
+            - AuthenticationFilter
         - id: booking-service
           uri: lb://BOOKING-SERVICE
           predicates:
             - Path=/bookings/**
+          filters:
+            - AuthenticationFilter
 
 eureka:
   instance:
