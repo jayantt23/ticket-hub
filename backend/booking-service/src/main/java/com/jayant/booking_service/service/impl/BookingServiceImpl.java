@@ -1,6 +1,7 @@
 package com.jayant.booking_service.service.impl;
 
 import com.jayant.booking_service.client.CatalogClient;
+import com.jayant.booking_service.dto.BookingPlacedEvent;
 import com.jayant.booking_service.dto.BookingResponseDto;
 import com.jayant.booking_service.dto.CreateBookingRequest;
 import com.jayant.booking_service.dto.ShowDetailsDto;
@@ -9,6 +10,7 @@ import com.jayant.booking_service.entity.BookingStatus;
 import com.jayant.booking_service.entity.ShowSeat;
 import com.jayant.booking_service.repository.BookingRepository;
 import com.jayant.booking_service.repository.ShowSeatRepository;
+import com.jayant.booking_service.service.BookingProducer;
 import com.jayant.booking_service.service.BookingService;
 import com.jayant.booking_service.service.RedisLockService;
 import jakarta.transaction.Transactional;
@@ -31,14 +33,16 @@ public class BookingServiceImpl implements BookingService {
 
     private final CatalogClient catalogClient;
 
+    private final BookingProducer bookingProducer;
+
     @Override
     @Transactional
-    public BookingResponseDto createBooking(CreateBookingRequest request, Long userId) {
+    public BookingResponseDto createBooking(CreateBookingRequest request) {
 
         boolean locked = redisLockService.acquireLock(
                 request.getShowId(),
                 request.getSeats(),
-                userId
+                request.getUserId()
         );
 
         if(!locked) {
@@ -56,7 +60,7 @@ public class BookingServiceImpl implements BookingService {
             BigDecimal totalAmount = show.getBasePrice().multiply(new BigDecimal(request.getSeats().size()));
 
             Booking booking = new Booking();
-            booking.setUserId(userId);
+            booking.setUserId(request.getUserId());
             booking.setShowId(request.getShowId());
             booking.setStatus(BookingStatus.PENDING);
             booking.setAmount(totalAmount);
@@ -75,6 +79,14 @@ public class BookingServiceImpl implements BookingService {
             }).toList();
 
             showSeatRepository.saveAll(showSeats);
+
+            BookingPlacedEvent event = new BookingPlacedEvent();
+            event.setBookingId(savedBooking.getId());
+            event.setUserId(savedBooking.getUserId());
+            event.setAmount(savedBooking.getAmount().doubleValue());
+            event.setEmail(request.getEmail());
+
+            bookingProducer.sendBookingEvent(event);
 
             return mapToDto(savedBooking);
         } catch (Exception e) {

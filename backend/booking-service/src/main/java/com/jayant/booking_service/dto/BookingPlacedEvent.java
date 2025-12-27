@@ -1,19 +1,15 @@
 package com.jayant.booking_service.dto;
 
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.util.List;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder
-public class CreateBookingRequest {
-    private Long showId;
-    private List<String> seats;
+public class BookingPlacedEvent {
+    private Long bookingId;
     private Long userId;
+    private Double amount;
     private String email;
 }

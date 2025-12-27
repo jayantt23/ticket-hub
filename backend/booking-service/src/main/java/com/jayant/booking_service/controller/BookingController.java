@@ -22,8 +22,12 @@ public class BookingController {
     @PostMapping
     public ResponseEntity<BookingResponseDto> createBooking(
             @RequestBody CreateBookingRequest request,
-            @RequestHeader("X-User-Id") String userId
+            @RequestHeader("X-User-Id") String userId,
+            @RequestHeader("X-User-Email") String email
     ) {
-        return ResponseEntity.ok(bookingService.createBooking(request, Long.parseLong(userId)));
+        request.setUserId(Long.parseLong(userId));
+        request.setEmail(email);
+
+        return ResponseEntity.ok(bookingService.createBooking(request));
     }
 }

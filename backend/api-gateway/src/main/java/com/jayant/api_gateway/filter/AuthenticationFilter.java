@@ -47,10 +47,12 @@ public class AuthenticationFilter extends AbstractGatewayFilterFactory<Authentic
 
                     String userId = jwtUtil.extractUserId(authHeader);
                     String role = jwtUtil.extractRole(authHeader);
+                    String email = jwtUtil.extractUserName(authHeader);
 
                      request = exchange.getRequest().mutate()
                              .header("X-User-Id", userId)
                              .header("X-User-Role", role)
+                             .header("X-User-Email", email)
                              .build();
 
                 } catch (Exception e) {
