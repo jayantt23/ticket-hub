@@ -54,7 +54,23 @@ public class AuthServiceImpl implements AuthService {
         );
 
         UserDetails user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new UsernameNotFoundException("User does not exist!"));
+                .orElseThrow(() -> new RuntimeException("User does not exist!"));
+
+        return AuthenticationResponse.builder()
+                .token(jwtService.generateToken(user))
+                .build();
+    }
+
+    @Override
+    public AuthenticationResponse registerAdmin(RegisterRequest request) {
+        User user = User.builder()
+                .name(request.getName())
+                .email(request.getEmail())
+                .password(passwordEncoder.encode(request.getPassword()))
+                .role(Role.ADMIN)
+                .build();
+
+        userRepository.save(user);
 
         return AuthenticationResponse.builder()
                 .token(jwtService.generateToken(user))

@@ -18,7 +18,7 @@ spring:
         - id: user-service-users
           uri: lb://USER-SERVICE
           predicates:
-            - Path=/users/**
+            - Path=/users/**, /admin/**
           filters:
             - AuthenticationFilter
         - id: catalog-service-read

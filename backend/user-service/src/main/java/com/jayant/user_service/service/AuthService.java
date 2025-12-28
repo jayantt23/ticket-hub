@@ -7,4 +7,5 @@ import com.jayant.user_service.dto.RegisterRequest;
 public interface AuthService {
     AuthenticationResponse register(RegisterRequest request);
     AuthenticationResponse authenticate(AuthenticationRequest request);
+    AuthenticationResponse registerAdmin(RegisterRequest request);
 }
