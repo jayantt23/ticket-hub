@@ -3,7 +3,7 @@ server:
 
 spring:
   application:
-    name: BOOKING-SERVICE
+    name: booking-service
   datasource:
     url: jdbc:postgresql://localhost:5432/tickethub_booking
     username: postgres
