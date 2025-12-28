@@ -73,8 +73,8 @@ public class BookingServiceImpl implements BookingService {
                 ShowSeat seat = new ShowSeat();
                 seat.setShowId(request.getShowId());
                 seat.setSeatNumber(seatNum);
-                seat.setBooking(savedBooking); // Link to the booking
-                seat.setLocked(true); // Mark as locked/booked
+                seat.setBooking(savedBooking);
+                seat.setLocked(true);
                 return seat;
             }).toList();
 
