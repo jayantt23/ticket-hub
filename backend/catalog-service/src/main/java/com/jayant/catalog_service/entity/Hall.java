@@ -1,7 +1,6 @@
 package com.jayant.catalog_service.entity;
 
 import com.jayant.catalog_service.dto.SeatLayout;
-import com.jayant.catalog_service.util.SeatLayoutConverter;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.JdbcTypeCode;
@@ -22,6 +21,9 @@ public class Hall implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", updatable = false, nullable = false)
     private Long id;
+
+    @Column(name = "name", nullable = false)
+    private String name;
 
     @Column(name = "seat_layout", columnDefinition = "jsonb", nullable = false)
     @JdbcTypeCode(SqlTypes.JSON)

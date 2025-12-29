@@ -1,6 +1,7 @@
 package com.jayant.booking_service.controller;
 
 import com.jayant.booking_service.dto.BookingResponseDto;
+import com.jayant.booking_service.dto.BookingStatusResponse;
 import com.jayant.booking_service.dto.CreateBookingRequest;
 import com.jayant.booking_service.dto.ShowDetailsDto;
 import com.jayant.booking_service.service.BookingService;
@@ -41,5 +42,14 @@ public class BookingController {
     @Operation(summary = "Get Show Details", description = "Returns current show details with a list of locked tickets.")
     public ResponseEntity<ShowDetailsDto> getShowDetails(@PathVariable Long showId) {
         return ResponseEntity.ok(bookingService.getShowDetails(showId));
+    }
+
+    @GetMapping("/{bookingId}")
+    @Operation(summary = "Get Booking Status")
+    public ResponseEntity<BookingStatusResponse> getBookingStatus(
+            @PathVariable Long bookingId,
+            @RequestHeader("X-User-Id") Long userId
+    ) {
+        return ResponseEntity.ok(bookingService.getBookingStatus(bookingId, userId));
     }
 }

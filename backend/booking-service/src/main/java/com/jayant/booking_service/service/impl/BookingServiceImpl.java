@@ -110,6 +110,22 @@ public class BookingServiceImpl implements BookingService {
         return showDto;
     }
 
+    @Override
+    public BookingStatusResponse getBookingStatus(Long bookingId, Long currentUserId) {
+        return bookingRepository.findById(bookingId)
+                .map(booking -> {
+                    if (!booking.getUserId().equals(currentUserId)) {
+                        throw new RuntimeException("Unauthorized access to booking: " + bookingId);
+                    }
+
+                    return new BookingStatusResponse(
+                            booking.getId(),
+                            booking.getStatus().toString()
+                    );
+                })
+                .orElseThrow(() -> new RuntimeException("Booking not found with id: " + bookingId));
+    }
+
     private void validateSeatsExistInLayout(List<String> requestedSeats, SeatLayout layout) {
         if (layout == null || layout.getRows() == null) {
             throw new RuntimeException("Invalid Hall Layout configuration.");

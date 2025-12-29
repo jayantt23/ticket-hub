@@ -20,6 +20,7 @@ public class HallMapperImpl implements HallMapper {
     @Override
     public Hall toEntity(HallDto hallDto) {
         Hall hall = new Hall();
+        hall.setName(hallDto.getName());
         hall.setSeatLayout(hallDto.getSeatLayout());
         hall.setTheatre(null);
         hall.setShows(new ArrayList<>());
@@ -31,6 +32,7 @@ public class HallMapperImpl implements HallMapper {
     public HallDto toDto(Hall hall) {
         return HallDto.builder()
                 .id(hall.getId())
+                .name(hall.getName())
                 .seatLayout(hall.getSeatLayout())
                 .shows(hall.getShows() != null ?
                         hall.getShows().stream()

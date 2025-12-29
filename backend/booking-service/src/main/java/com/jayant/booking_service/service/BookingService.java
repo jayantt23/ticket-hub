@@ -1,10 +1,12 @@
 package com.jayant.booking_service.service;
 
 import com.jayant.booking_service.dto.BookingResponseDto;
+import com.jayant.booking_service.dto.BookingStatusResponse;
 import com.jayant.booking_service.dto.CreateBookingRequest;
 import com.jayant.booking_service.dto.ShowDetailsDto;
 
 public interface BookingService {
-    public BookingResponseDto createBooking(CreateBookingRequest request);
+    BookingResponseDto createBooking(CreateBookingRequest request);
     ShowDetailsDto getShowDetails(Long showId);
+    public BookingStatusResponse getBookingStatus(Long bookingId, Long currentUserId);
 }
