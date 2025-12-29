@@ -54,6 +54,40 @@ graph TD
     BookingSvc --> DB3[(Booking DB)]
 ```
 
+## Concurrency & Distributed Locking
+One of the biggest challenges in ticket booking systems is handling **race conditions**: *What happens if two users try to book the same seat at the exact same millisecond?*
+
+To solve this, I implemented **Distributed Locking** using Redis.
+
+### The Problem (Race Condition)
+Without locking, two parallel requests could both read the seat status as `AVAILABLE`, pass the check, and overwrite each other, leading to a double booking.
+
+### The Solution (Redis `SETNX`)
+Before any booking logic executes, the system attempts to acquire a lock on the specific `showId` + `seatNumber` key in Redis.
+1.  **Atomicity:** Redis operations are atomic. Only one thread can successfully set the key.
+2.  **TTL (Time To Live):** Locks expire automatically (e.g., 10 mins) to prevent deadlocks if a service crashes.
+3.  **Fail-Fast:** If a second user tries to book, the lock acquisition fails immediately, returning an error without hitting the database.
+
+```mermaid
+sequenceDiagram
+    participant UserA
+    participant UserB
+    participant BookingSvc
+    participant Redis
+    
+    UserA->>BookingSvc: Request Seat A1
+    UserB->>BookingSvc: Request Seat A1 (Same Time)
+    
+    BookingSvc->>Redis: SETNX lock:show_1_seat_A1
+    Redis-->>BookingSvc: Success (True)
+    
+    BookingSvc->>Redis: SETNX lock:show_1_seat_A1
+    Redis-->>BookingSvc: Fail (False)
+    
+    BookingSvc->>UserA: 200 OK (Booking Created)
+    BookingSvc->>UserB: 409 Conflict (Seat Locked)
+```
+
 ## How to Run
 ### Prerequisites
 * Docker & Docker Compose
