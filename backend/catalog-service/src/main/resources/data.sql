@@ -140,3 +140,8 @@ INSERT INTO shows (id, movie_id, hall_id, start_time, base_price) VALUES
 (34, 2, 7, CURRENT_TIMESTAMP + INTERVAL '3 days 14 hours', 750.00), -- Dark Knight (IMAX)
 (35, 7, 8, CURRENT_TIMESTAMP + INTERVAL '3 days 10 hours', 300.00) -- 3 Idiots
 ON CONFLICT (id) DO NOTHING;
+
+SELECT setval('theatres_id_seq', (SELECT MAX(id) FROM theatres));
+SELECT setval('halls_id_seq', (SELECT MAX(id) FROM halls));
+SELECT setval('movies_id_seq', (SELECT MAX(id) FROM movies));
+SELECT setval('shows_id_seq', (SELECT MAX(id) FROM shows));

@@ -8,10 +8,12 @@ import com.jayant.catalog_service.mapper.HallMapper;
 import com.jayant.catalog_service.repository.HallRepository;
 import com.jayant.catalog_service.repository.TheatreRepository;
 import com.jayant.catalog_service.service.HallService;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -29,7 +31,12 @@ public class HallServiceImpl implements HallService {
     private final TheatreRepository theatreRepository;
 
     @Override
-    @CacheEvict(value = "halls", allEntries = true)
+    @Caching(evict = {
+            @CacheEvict(value = "halls", key = "#theatreId"),
+            @CacheEvict(value = "theatres", key = "#theatreId"),
+            @CacheEvict(value = "theatres", allEntries = true)
+    })
+    @Transactional
     public HallDto saveHall(Long theatreId, HallDto hallDto) {
         Theatre theatre = theatreRepository.findById(theatreId)
                 .orElseThrow(() -> new RuntimeException("Theatre not found with id: " + theatreId));
@@ -52,6 +59,11 @@ public class HallServiceImpl implements HallService {
     }
 
     @Override
+    @Caching(evict = {
+            @CacheEvict(value = "halls", allEntries = true),
+            @CacheEvict(value = "theatres", allEntries = true)
+    })
+    @Transactional
     public HallDto updateSeats(Long hallId, SeatLayout seats) {
         Hall hall = hallRepository.findById(hallId)
                 .orElseThrow(() -> new RuntimeException("Hall not found with id: " + hallId));

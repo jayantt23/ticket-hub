@@ -5,6 +5,7 @@ import com.jayant.catalog_service.entity.Movie;
 import com.jayant.catalog_service.mapper.MovieMapper;
 import com.jayant.catalog_service.repository.MovieRepository;
 import com.jayant.catalog_service.service.MovieService;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
@@ -25,6 +26,7 @@ public class MovieServiceImpl implements MovieService {
 
     @Override
     @CacheEvict(value = "movies", allEntries = true)
+    @Transactional
     public MovieDto saveMovie(MovieDto movieDto) {
         Movie movie = mapper.toEntity(movieDto);
 

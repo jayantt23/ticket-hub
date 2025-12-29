@@ -6,6 +6,7 @@ import com.jayant.catalog_service.entity.Theatre;
 import com.jayant.catalog_service.mapper.TheatreMapper;
 import com.jayant.catalog_service.repository.TheatreRepository;
 import com.jayant.catalog_service.service.TheatreService;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
@@ -28,6 +29,7 @@ public class TheatreServiceImpl implements TheatreService {
 
     @Override
     @CacheEvict(value = "theatres", allEntries = true)
+    @Transactional
     public TheatreDto saveTheatre(TheatreDto theatreDto) {
         Theatre theatre = mapper.toEntity(theatreDto);
         Theatre savedTheatre = repository.save(theatre);

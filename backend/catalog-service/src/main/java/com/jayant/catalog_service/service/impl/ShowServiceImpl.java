@@ -14,6 +14,8 @@ import com.jayant.catalog_service.service.ShowService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -37,6 +39,11 @@ public class ShowServiceImpl implements ShowService {
 
     @Override
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = "halls", allEntries = true),
+            @CacheEvict(value = "movies", allEntries = true),
+            @CacheEvict(value = "theatres", allEntries = true)
+    })
     public ShowResponseDto saveShow(ScheduleShowRequest request) {
         Movie movie = movieRepository.findById(request.getMovieId())
                 .orElseThrow(() -> new RuntimeException("Movie not found with id: " + request.getMovieId()));
