@@ -2,6 +2,7 @@ package com.jayant.booking_service.controller;
 
 import com.jayant.booking_service.dto.BookingResponseDto;
 import com.jayant.booking_service.dto.CreateBookingRequest;
+import com.jayant.booking_service.dto.ShowDetailsDto;
 import com.jayant.booking_service.service.BookingService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -34,5 +35,11 @@ public class BookingController {
         request.setEmail(email);
 
         return ResponseEntity.ok(bookingService.createBooking(request));
+    }
+
+    @GetMapping("/show/{showId}")
+    @Operation(summary = "Get Show Details", description = "Returns current show details with a list of locked tickets.")
+    public ResponseEntity<ShowDetailsDto> getShowDetails(@PathVariable Long showId) {
+        return ResponseEntity.ok(bookingService.getShowDetails(showId));
     }
 }

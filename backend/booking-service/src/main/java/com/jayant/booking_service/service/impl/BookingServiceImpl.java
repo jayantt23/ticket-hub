@@ -1,10 +1,7 @@
 package com.jayant.booking_service.service.impl;
 
 import com.jayant.booking_service.client.CatalogClient;
-import com.jayant.booking_service.dto.BookingPlacedEvent;
-import com.jayant.booking_service.dto.BookingResponseDto;
-import com.jayant.booking_service.dto.CreateBookingRequest;
-import com.jayant.booking_service.dto.ShowDetailsDto;
+import com.jayant.booking_service.dto.*;
 import com.jayant.booking_service.entity.Booking;
 import com.jayant.booking_service.entity.BookingStatus;
 import com.jayant.booking_service.entity.ShowSeat;
@@ -50,13 +47,16 @@ public class BookingServiceImpl implements BookingService {
         }
 
         try {
+            ShowDetailsDto show = catalogClient.getShow(request.getShowId());
+
+            validateSeatsExistInLayout(request.getSeats(), show.getSeatLayout());
+
             for (String seatNum : request.getSeats()) {
                 if (showSeatRepository.existsByShowIdAndSeatNumber(request.getShowId(), seatNum)) {
                     throw new RuntimeException("Seat " + seatNum + " is already booked!");
                 }
             }
 
-            ShowDetailsDto show = catalogClient.getShow(request.getShowId());
             BigDecimal totalAmount = show.getBasePrice().multiply(new BigDecimal(request.getSeats().size()));
 
             Booking booking = new Booking();
@@ -92,6 +92,50 @@ public class BookingServiceImpl implements BookingService {
         } catch (Exception e) {
             redisLockService.releaseLock(request.getShowId(), request.getSeats());
             throw new RuntimeException("Booking failed", e);
+        }
+    }
+
+    @Override
+    public ShowDetailsDto getShowDetails(Long showId) {
+        ShowDetailsDto showDto = catalogClient.getShow(showId);
+
+        List<ShowSeat> occupiedSeats = showSeatRepository.findByShowId(showId);
+
+        List<String> bookedSeatNumbers = occupiedSeats.stream()
+                .map(ShowSeat::getSeatNumber)
+                .toList();
+
+        showDto.setBookedSeats(bookedSeatNumbers);
+
+        return showDto;
+    }
+
+    private void validateSeatsExistInLayout(List<String> requestedSeats, SeatLayout layout) {
+        if (layout == null || layout.getRows() == null) {
+            throw new RuntimeException("Invalid Hall Layout configuration.");
+        }
+
+        for (String reqSeat : requestedSeats) {
+            boolean found = false;
+
+            String rowLabel = reqSeat.replaceAll("\\d", "");
+            int seatNumber = Integer.parseInt(reqSeat.replaceAll("\\D", ""));
+
+            for (SeatRow row : layout.getRows()) {
+                if (row.getRowLabel().equalsIgnoreCase(rowLabel)) {
+                    for (Seat seat : row.getSeats()) {
+                        if (seat.getNumber() == seatNumber) {
+                            found = true;
+                            break;
+                        }
+                    }
+                }
+                if (found) break;
+            }
+
+            if (!found) {
+                throw new RuntimeException("Invalid Seat: " + reqSeat + " does not exist in this hall!");
+            }
         }
     }
 
