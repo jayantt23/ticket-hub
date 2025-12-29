@@ -32,7 +32,7 @@ public class MovieController {
         return ResponseEntity.ok(movieService.getAllMovies());
     }
 
-    @GetMapping("/{movie_id}")
+    @GetMapping("/{movieId}")
     @Operation(summary = "Get a Specified Movie")
     public ResponseEntity<MovieDto> getMovie(@PathVariable Long movieId) {
         return ResponseEntity.ok(movieService.getMovieById(movieId));

@@ -24,7 +24,7 @@ public class ShowController {
     private final ShowService showService;
 
     @PostMapping
-    @Operation(summary = "Schedule a Movie")
+    @Operation(summary = "Schedule a Show")
     public ResponseEntity<ShowResponseDto> scheduleShow(@RequestBody ScheduleShowRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(showService.saveShow(request));

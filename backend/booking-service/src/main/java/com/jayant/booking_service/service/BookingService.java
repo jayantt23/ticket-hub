@@ -8,5 +8,5 @@ import com.jayant.booking_service.dto.ShowDetailsDto;
 public interface BookingService {
     BookingResponseDto createBooking(CreateBookingRequest request);
     ShowDetailsDto getShowDetails(Long showId);
-    public BookingStatusResponse getBookingStatus(Long bookingId, Long currentUserId);
+    BookingStatusResponse getBookingStatus(Long bookingId, Long currentUserId);
 }

@@ -85,53 +85,58 @@ ON CONFLICT (id) DO NOTHING;
 
 -- DAY 1 (Tomorrow): Morning, Afternoon, Evening
 -- Mumbai (Theatres 1 & 2)
-INSERT INTO shows (movie_id, hall_id, start_time, base_price) VALUES
-(1, 1, CURRENT_TIMESTAMP + INTERVAL '1 day 10 hours', 350.00), -- Interstellar
-(2, 1, CURRENT_TIMESTAMP + INTERVAL '1 day 14 hours', 350.00), -- Dark Knight
-(6, 2, CURRENT_TIMESTAMP + INTERVAL '1 day 11 hours', 500.00), -- Jawan (Gold)
-(5, 3, CURRENT_TIMESTAMP + INTERVAL '1 day 09 hours', 800.00), -- Endgame (IMAX)
-(5, 3, CURRENT_TIMESTAMP + INTERVAL '1 day 13 hours', 850.00), -- Endgame (IMAX)
-(8, 3, CURRENT_TIMESTAMP + INTERVAL '1 day 17 hours', 850.00), -- Spiderman (IMAX)
-(7, 4, CURRENT_TIMESTAMP + INTERVAL '1 day 12 hours', 300.00), -- 3 Idiots
-(4, 4, CURRENT_TIMESTAMP + INTERVAL '1 day 16 hours', 300.00); -- Parasite
+INSERT INTO shows (id, movie_id, hall_id, start_time, base_price) VALUES
+(1, 1, 1, CURRENT_TIMESTAMP + INTERVAL '1 day 10 hours', 350.00), -- Interstellar
+(2, 2, 1, CURRENT_TIMESTAMP + INTERVAL '1 day 14 hours', 350.00), -- Dark Knight
+(3, 6, 2, CURRENT_TIMESTAMP + INTERVAL '1 day 11 hours', 500.00), -- Jawan (Gold)
+(4, 5, 3, CURRENT_TIMESTAMP + INTERVAL '1 day 09 hours', 800.00), -- Endgame (IMAX)
+(5, 5, 3, CURRENT_TIMESTAMP + INTERVAL '1 day 13 hours', 850.00), -- Endgame (IMAX)
+(6, 8, 3, CURRENT_TIMESTAMP + INTERVAL '1 day 17 hours', 850.00), -- Spiderman (IMAX)
+(7, 7, 4, CURRENT_TIMESTAMP + INTERVAL '1 day 12 hours', 300.00), -- 3 Idiots
+(8, 4, 4, CURRENT_TIMESTAMP + INTERVAL '1 day 16 hours', 300.00) -- Parasite
+ON CONFLICT (id) DO NOTHING;
 
 -- Delhi (Theatres 3 & 4)
-INSERT INTO shows (movie_id, hall_id, start_time, base_price) VALUES
-(9, 5, CURRENT_TIMESTAMP + INTERVAL '1 day 10 hours', 250.00), -- Godfather
-(3, 5, CURRENT_TIMESTAMP + INTERVAL '1 day 15 hours', 300.00), -- Inception
-(10, 6, CURRENT_TIMESTAMP + INTERVAL '1 day 12 hours', 450.00), -- Barbie (Premium)
-(2, 6, CURRENT_TIMESTAMP + INTERVAL '1 day 18 hours', 450.00), -- Dark Knight (Premium)
-(1, 7, CURRENT_TIMESTAMP + INTERVAL '1 day 11 hours', 750.00), -- Interstellar (IMAX)
-(6, 7, CURRENT_TIMESTAMP + INTERVAL '1 day 15 hours', 750.00), -- Jawan (IMAX)
-(8, 8, CURRENT_TIMESTAMP + INTERVAL '1 day 13 hours', 300.00); -- Spiderman
+INSERT INTO shows (id, movie_id, hall_id, start_time, base_price) VALUES
+(9, 9, 5, CURRENT_TIMESTAMP + INTERVAL '1 day 10 hours', 250.00), -- Godfather
+(10, 3, 5, CURRENT_TIMESTAMP + INTERVAL '1 day 15 hours', 300.00), -- Inception
+(11, 10, 6, CURRENT_TIMESTAMP + INTERVAL '1 day 12 hours', 450.00), -- Barbie (Premium)
+(12, 2, 6, CURRENT_TIMESTAMP + INTERVAL '1 day 18 hours', 450.00), -- Dark Knight (Premium)
+(13, 1, 7, CURRENT_TIMESTAMP + INTERVAL '1 day 11 hours', 750.00), -- Interstellar (IMAX)
+(14, 6, 7, CURRENT_TIMESTAMP + INTERVAL '1 day 15 hours', 750.00), -- Jawan (IMAX)
+(15, 8, 8, CURRENT_TIMESTAMP + INTERVAL '1 day 13 hours', 300.00) -- Spiderman
+ON CONFLICT (id) DO NOTHING;
 
 -- DAY 2 (Day After Tomorrow)
 -- Mumbai
-INSERT INTO shows (movie_id, hall_id, start_time, base_price) VALUES
-(3, 1, CURRENT_TIMESTAMP + INTERVAL '2 days 10 hours', 350.00), -- Inception
-(4, 1, CURRENT_TIMESTAMP + INTERVAL '2 days 14 hours', 300.00), -- Parasite
-(9, 2, CURRENT_TIMESTAMP + INTERVAL '2 days 18 hours', 600.00), -- Godfather (Gold)
-(1, 3, CURRENT_TIMESTAMP + INTERVAL '2 days 10 hours', 800.00), -- Interstellar (IMAX)
-(2, 3, CURRENT_TIMESTAMP + INTERVAL '2 days 15 hours', 800.00), -- Dark Knight (IMAX)
-(10, 4, CURRENT_TIMESTAMP + INTERVAL '2 days 12 hours', 300.00); -- Barbie
+INSERT INTO shows (id, movie_id, hall_id, start_time, base_price) VALUES
+(16, 3, 1, CURRENT_TIMESTAMP + INTERVAL '2 days 10 hours', 350.00), -- Inception
+(17, 4, 1, CURRENT_TIMESTAMP + INTERVAL '2 days 14 hours', 300.00), -- Parasite
+(18, 9, 2, CURRENT_TIMESTAMP + INTERVAL '2 days 18 hours', 600.00), -- Godfather (Gold)
+(19, 1, 3, CURRENT_TIMESTAMP + INTERVAL '2 days 10 hours', 800.00), -- Interstellar (IMAX)
+(20, 2, 3, CURRENT_TIMESTAMP + INTERVAL '2 days 15 hours', 800.00), -- Dark Knight (IMAX)
+(21, 10, 4, CURRENT_TIMESTAMP + INTERVAL '2 days 12 hours', 300.00) -- Barbie
+ON CONFLICT (id) DO NOTHING;
 
 -- Delhi
-INSERT INTO shows (movie_id, hall_id, start_time, base_price) VALUES
-(5, 5, CURRENT_TIMESTAMP + INTERVAL '2 days 10 hours', 300.00), -- Endgame
-(7, 5, CURRENT_TIMESTAMP + INTERVAL '2 days 15 hours', 300.00), -- 3 Idiots
-(6, 6, CURRENT_TIMESTAMP + INTERVAL '2 days 19 hours', 500.00), -- Jawan (Premium)
-(8, 7, CURRENT_TIMESTAMP + INTERVAL '2 days 11 hours', 750.00), -- Spiderman (IMAX)
-(3, 7, CURRENT_TIMESTAMP + INTERVAL '2 days 16 hours', 750.00); -- Inception (IMAX)
+INSERT INTO shows (id, movie_id, hall_id, start_time, base_price) VALUES
+(22, 5, 5, CURRENT_TIMESTAMP + INTERVAL '2 days 10 hours', 300.00), -- Endgame
+(23, 7, 5, CURRENT_TIMESTAMP + INTERVAL '2 days 15 hours', 300.00), -- 3 Idiots
+(24, 6, 6, CURRENT_TIMESTAMP + INTERVAL '2 days 19 hours', 500.00), -- Jawan (Premium)
+(25, 8, 7, CURRENT_TIMESTAMP + INTERVAL '2 days 11 hours', 750.00), -- Spiderman (IMAX)
+(26, 3, 7, CURRENT_TIMESTAMP + INTERVAL '2 days 16 hours', 750.00) -- Inception (IMAX)
+ON CONFLICT (id) DO NOTHING;
 
 -- DAY 3 (3 Days from now)
 -- Mixing remaining movies into remaining slots
-INSERT INTO shows (movie_id, hall_id, start_time, base_price) VALUES
-(10, 1, CURRENT_TIMESTAMP + INTERVAL '3 days 10 hours', 350.00), -- Barbie
-(8, 1, CURRENT_TIMESTAMP + INTERVAL '3 days 14 hours', 350.00), -- Spiderman
-(1, 2, CURRENT_TIMESTAMP + INTERVAL '3 days 18 hours', 600.00), -- Interstellar (Gold)
-(6, 3, CURRENT_TIMESTAMP + INTERVAL '3 days 12 hours', 850.00), -- Jawan (IMAX)
-(5, 4, CURRENT_TIMESTAMP + INTERVAL '3 days 15 hours', 300.00), -- Endgame
-(9, 5, CURRENT_TIMESTAMP + INTERVAL '3 days 11 hours', 250.00), -- Godfather
-(4, 6, CURRENT_TIMESTAMP + INTERVAL '3 days 17 hours', 450.00), -- Parasite (Premium)
-(2, 7, CURRENT_TIMESTAMP + INTERVAL '3 days 14 hours', 750.00), -- Dark Knight (IMAX)
-(7, 8, CURRENT_TIMESTAMP + INTERVAL '3 days 10 hours', 300.00); -- 3 Idiots
+INSERT INTO shows (id, movie_id, hall_id, start_time, base_price) VALUES
+(27, 10, 1, CURRENT_TIMESTAMP + INTERVAL '3 days 10 hours', 350.00), -- Barbie
+(28, 8, 1, CURRENT_TIMESTAMP + INTERVAL '3 days 14 hours', 350.00), -- Spiderman
+(29, 1, 2, CURRENT_TIMESTAMP + INTERVAL '3 days 18 hours', 600.00), -- Interstellar (Gold)
+(30, 6, 3, CURRENT_TIMESTAMP + INTERVAL '3 days 12 hours', 850.00), -- Jawan (IMAX)
+(31, 5, 4, CURRENT_TIMESTAMP + INTERVAL '3 days 15 hours', 300.00), -- Endgame
+(32, 9, 5, CURRENT_TIMESTAMP + INTERVAL '3 days 11 hours', 250.00), -- Godfather
+(33, 4, 6, CURRENT_TIMESTAMP + INTERVAL '3 days 17 hours', 450.00), -- Parasite (Premium)
+(34, 2, 7, CURRENT_TIMESTAMP + INTERVAL '3 days 14 hours', 750.00), -- Dark Knight (IMAX)
+(35, 7, 8, CURRENT_TIMESTAMP + INTERVAL '3 days 10 hours', 300.00) -- 3 Idiots
+ON CONFLICT (id) DO NOTHING;
