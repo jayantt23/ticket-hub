@@ -1,4 +1,5 @@
 services:
+  # Infrastructure
   postgres:
     image: postgres:15-alpine
     container_name: tickethub-postgres
@@ -13,6 +14,11 @@ services:
     networks:
       - microservices-network
     restart: always
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   redis:
     image: redis:alpine
@@ -63,6 +69,161 @@ services:
     environment:
       KAFKA_CLUSTERS_0_NAME: local
       KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
+    networks:
+      - microservices-network
+
+  # Services
+  service-registry:
+    image: service-registry:latest
+    container_name: service-registry
+    ports:
+      - "8761:8761"
+    environment:
+      - EUREKA_CLIENT_REGISTER_WITH_EUREKA=false
+      - EUREKA_CLIENT_FETCH_REGISTRY=false
+    networks:
+      - microservices-network
+    healthcheck:
+      test: [ "CMD-SHELL", "wget -q --spider http://localhost:8761/actuator/health || exit 1" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api-gateway:
+    image: api-gateway:latest
+    container_name: api-gateway
+    ports:
+      - "8080:8080"
+    environment:
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://service-registry:8761/eureka/
+      - EUREKA_INSTANCE_HOSTNAME=api-gateway
+
+      - APPLICATION_SECURITY_JWT_SECRET_KEY=${JWT_SECRET}
+      - SPRING_PROFILES_ACTIVE=${APP_PROFILE}
+      - LOGGING_LEVEL_ROOT=${LOG_LEVEL}
+    depends_on:
+      service-registry:
+        condition: service_healthy
+    networks:
+      - microservices-network
+
+  user-service:
+    image: user-service:latest
+    container_name: user-service
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://tickethub-postgres:5432/tickethub_users
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=password
+
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://service-registry:8761/eureka/
+      - EUREKA_INSTANCE_HOSTNAME=user-service
+
+      - APPLICATION_SECURITY_JWT_SECRET_KEY=${JWT_SECRET}
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+    depends_on:
+      postgres:
+        condition: service_healthy
+      service-registry:
+        condition: service_healthy
+    networks:
+      - microservices-network
+
+  catalog-service:
+    image: catalog-service:latest
+    container_name: catalog-service
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://tickethub-postgres:5432/tickethub_catalog
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=password
+
+      - SPRING_DATA_REDIS_HOST=tickethub-redis
+      - SPRING_DATA_REDIS_PORT=6379
+
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://service-registry:8761/eureka/
+      - EUREKA_INSTANCE_HOSTNAME=catalog-service
+
+      - SPRING_SQL_INIT_MODE=always
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      service-registry:
+        condition: service_healthy
+    networks:
+      - microservices-network
+
+  booking-service:
+    image: booking-service:latest
+    container_name: booking-service
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://tickethub-postgres:5432/tickethub_booking
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=password
+
+      - SPRING_DATA_REDIS_HOST=tickethub-redis
+      - SPRING_DATA_REDIS_PORT=6379
+
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:29092
+
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://service-registry:8761/eureka/
+      - EUREKA_INSTANCE_HOSTNAME=booking-service
+
+      - SPRING_KAFKA_CONSUMER_GROUP_ID=booking-group
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      kafka:
+        condition: service_started
+      service-registry:
+        condition: service_healthy
+    networks:
+      - microservices-network
+
+  payment-service:
+    image: payment-service:latest
+    container_name: payment-service
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://tickethub-postgres:5432/tickethub_payment
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=password
+
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:29092
+
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://service-registry:8761/eureka/
+      - EUREKA_INSTANCE_HOSTNAME=payment-service
+
+      - SPRING_KAFKA_CONSUMER_GROUP_ID=payment-group
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_started
+      service-registry:
+        condition: service_healthy
+    networks:
+      - microservices-network
+
+  notification-service:
+    image: notification-service:latest
+    container_name: notification-service
+    environment:
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:29092
+
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://service-registry:8761/eureka/
+      - EUREKA_INSTANCE_HOSTNAME=notification-service
+
+      - SPRING_MAIL_HOST=sandbox.smtp.mailtrap.io
+      - SPRING_MAIL_PORT=2525
+      - SPRING_MAIL_USERNAME=${MAILTRAP_USERNAME}
+      - SPRING_MAIL_PASSWORD=${MAILTRAP_PASSWORD}
+    depends_on:
+      kafka:
+        condition: service_started
+      service-registry:
+        condition: service_healthy
     networks:
       - microservices-network
 
