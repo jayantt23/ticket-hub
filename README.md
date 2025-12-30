@@ -108,7 +108,7 @@ sequenceDiagram
 1.  Clone the repository:
     ```bash
     git clone [https://github.com/your-username/ticket-hub.git](https://github.com/your-username/ticket-hub.git)
-    cd ticket-hub
+    cd ticket-hub/backend
     ```
 2.  Build and run all services:
     ```bash
