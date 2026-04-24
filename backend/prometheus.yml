@@ -1,0 +1,15 @@
+global:
+  scrape_interval: 5s # How often to collect data
+
+scrape_configs:
+  - job_name: 'tickethub-metrics'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets:
+          - 'api-gateway:8080'
+          - 'booking-service:8083'
+          - 'catalog-service:8082'
+          - 'notification-service:8085'
+          - 'payment-service:8084'
+          - 'user-service:8081'
+          - 'service-registry:8761'
