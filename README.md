@@ -17,6 +17,7 @@ TicketHub is a scalable, distributed ticket booking system (BookMyShow clone) bu
 - **Messaging:** Apache Kafka, Zookeeper
 - **Database:** PostgreSQL (Per-service DB pattern), Redis (Caching & Locking)
 - **Infrastructure:** Docker, Docker Compose
+- **Observability:** Prometheus, Grafana, Zipkin, Micrometer
 - **Testing:** JUnit 5, Mockito, JMeter (Concurrency)
 
 ## Architecture
@@ -57,6 +58,20 @@ graph TD
     CatalogSvc --> DB2[(Catalog DB)]
     BookingSvc --> DB3[(Booking DB)]
 ```
+
+## 📊 Observability & Monitoring
+
+The system features a 7/7 healthy service mesh with full telemetry.
+
+- **Prometheus:** Real-time metrics collection from all service `/actuator/prometheus` endpoints.
+- **Grafana:** Visualizes JVM health, CPU load, and Kafka consumer lag.
+- **Zipkin:** Tracks distributed requests across service boundaries via Trace IDs.
+
+| Tool | URL | Description |
+| :--- | :--- | :--- |
+| **Grafana** | `http://localhost:3000` | Dashboards (Login: admin/admin) |
+| **Prometheus** | `http://localhost:9090` | Metrics & Target Status (7/7 UP) |
+| **Zipkin** | `http://localhost:9411` | Distributed Tracing UI |
 
 ## Concurrency & Distributed Locking
 
