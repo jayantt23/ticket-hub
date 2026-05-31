@@ -1,171 +1,218 @@
 # TicketHub - Event Driven Microservices
 
-TicketHub is a scalable, distributed ticket booking system (BookMyShow clone) built with **Spring Boot 3**, **Apache Kafka**, and **Redis**. It implements the **Saga Design Pattern** for distributed transactions and handles high concurrency using Distributed Locking.
+TicketHub is a scalable, distributed ticket booking system built with **Spring Boot 3**, **Apache Kafka**, and **Redis**. It implements a **Choreographed Saga Design Pattern** for distributed transactions and handles high concurrency using Redis Distributed Locking.
 
 ## Key Features
 
-- **Microservices Architecture:** Deployed 7 distinct services using Spring Cloud.
-- **Event-Driven Sagas:** Orchestrated booking & payment flows using Kafka.
-- **Concurrency Handling:** Solved the "Double Booking" problem using **Redis Distributed Locks**.
-- **Gateway & Security:** Centralized API Gateway with JWT Authentication.
-- **Service Discovery:** Dynamic scaling with Netflix Eureka.
-- **Resilience:** Circuit Breakers and Retry mechanisms.
+* **Microservices Architecture:** Deployed modular services using Spring Cloud.
+* **Event-Driven Sagas:** Orchestrated asynchronous booking & payment flows using Kafka.
+* **Concurrency Handling:** Solved the "Double Booking" race condition using **Redis `SETNX` Locks**.
+* **Gateway & Security:** Centralized API Gateway with JWT Authentication.
+* **Service Discovery:** Dynamic scaling with Netflix Eureka.
+* **Global Error Handling:** Standardized REST exception handling across all services.
 
 ## Tech Stack
 
-- **Backend:** Java 17, Spring Boot 3.2
-- **Messaging:** Apache Kafka, Zookeeper
-- **Database:** PostgreSQL (Per-service DB pattern), Redis (Caching & Locking)
-- **Infrastructure:** Docker, Docker Compose
-- **Observability:** Prometheus, Grafana, Zipkin, Micrometer
-- **Testing:** JUnit 5, Mockito, JMeter (Concurrency)
+* **Backend:** Java 17, Spring Boot 3.2
+* **Messaging:** Apache Kafka, Zookeeper
+* **Database:** PostgreSQL (Per-service DB pattern), Redis (Caching & Locking)
+* **Infrastructure:** Docker, Docker Compose
+* **Observability:** Prometheus, Grafana, Zipkin, Micrometer
+* **Testing:** JUnit 5, Mockito, JMeter (Concurrency)
 
-## Architecture
+## Architecture Overview
 
 The system consists of the following microservices:
 
-1.  **API Gateway:** Entry point, routing, and SSL termination.
-2.  **User Service:** JWT Identity management.
-3.  **Catalog Service:** Manages movies, theatres, and shows.
-4.  **Booking Service:** Handles ticket reservation and Sagas.
-5.  **Payment Service:** Processes mock payments asynchronously.
-6.  **Notification Service:** Sends email alerts via SMTP.
-7.  **Eureka Server:** Service Registry.
+1. **API Gateway:** Entry point, routing, and SSL termination.
+2. **User Service:** JWT Identity management.
+3. **Catalog Service:** Manages movies, theatres, and shows.
+4. **Booking Service:** Handles ticket reservation, locks, and Saga initiation.
+5. **Payment Service:** Processes mock payments asynchronously.
+6. **Notification Service:** Sends email alerts via SMTP.
+7. **Eureka Server:** Service Registry.
 
 ```mermaid
 graph TD
-    User([User]) -->|HTTP| Gateway[API Gateway]
+    User([User]) -->|HTTP| Gateway[API Gateway]
 
-    subgraph Infrastructure
-        Eureka[Eureka Server]
-        Kafka{Apache Kafka}
-        Redis[(Redis Cache)]
-    end
+    subgraph Infrastructure
+        Eureka[Eureka Server]
+        Kafka{Apache Kafka}
+        Redis[(Redis Cache)]
+    end
 
-    Gateway -->|Auth| UserSvc[User Service]
-    Gateway -->|Data| CatalogSvc[Catalog Service]
-    Gateway -->|Order| BookingSvc[Booking Service]
+    Gateway -->|Auth| UserSvc[User Service]
+    Gateway -->|Data| CatalogSvc[Catalog Service]
+    Gateway -->|Order| BookingSvc[Booking Service]
 
-    BookingSvc -->|Lock| Redis
-    BookingSvc -->|Event| Kafka
+    BookingSvc -->|Lock| Redis
+    BookingSvc -->|Event| Kafka
 
-    Kafka -->|Consume| PaymentSvc[Payment Service]
-    PaymentSvc -->|Response| Kafka
+    Kafka -->|Consume| PaymentSvc[Payment Service]
+    PaymentSvc -->|Response| Kafka
 
-    Kafka -->|Consume| NotifSvc[Notification Service]
+    Kafka -->|Consume| NotifSvc[Notification Service]
 
-    UserSvc --> DB1[(User DB)]
-    CatalogSvc --> DB2[(Catalog DB)]
-    BookingSvc --> DB3[(Booking DB)]
+    UserSvc --> DB1[(User DB)]
+    CatalogSvc --> DB2[(Catalog DB)]
+    BookingSvc --> DB3[(Booking DB)]
+
 ```
 
-## 📊 Observability & Monitoring
+---
 
-The system features a 7/7 healthy service mesh with full telemetry.
+## Event-Driven Architecture & Saga Orchestration
 
-- **Prometheus:** Real-time metrics collection from all service `/actuator/prometheus` endpoints.
-- **Grafana:** Visualizes JVM health, CPU load, and Kafka consumer lag.
-- **Zipkin:** Tracks distributed requests across service boundaries via Trace IDs.
+TicketHub uses an asynchronous, choreographed **Saga Design Pattern** managed via Apache Kafka to maintain data consistency across distributed services without tight coupling or blocking HTTP calls.
 
-| Tool | URL | Description |
-| :--- | :--- | :--- |
-| **Grafana** | `http://localhost:3000` | Dashboards (Login: admin/admin) |
-| **Prometheus** | `http://localhost:9090` | Metrics & Target Status (7/7 UP) |
-| **Zipkin** | `http://localhost:9411` | Distributed Tracing UI |
+### Kafka Event Schema & Topics
 
-## Concurrency & Distributed Locking
-
-One of the biggest challenges in ticket booking systems is handling **race conditions**: _What happens if two users try to book the same seat at the exact same millisecond?_
-
-To solve this, I implemented **Distributed Locking** using Redis.
-
-### The Problem (Race Condition)
-
-Without locking, two parallel requests could both read the seat status as `AVAILABLE`, pass the check, and overwrite each other, leading to a double booking.
-
-### The Solution (Redis `SETNX`)
-
-Before any booking logic executes, the system attempts to acquire a lock on the specific `showId` + `seatNumber` key in Redis.
-
-1.  **Atomicity:** Redis operations are atomic. Only one thread can successfully set the key.
-2.  **TTL (Time To Live):** Locks expire automatically (e.g., 10 mins) to prevent deadlocks if a service crashes.
-3.  **Fail-Fast:** If a second user tries to book, the lock acquisition fails immediately, returning an error without hitting the database.
+* **`booking-events` Topic:** Published by the Booking Service (`BookingPlacedEvent`). Contains `bookingId`, `userId`, `amount`, and `email`.
+* **`payment-events` Topic:** Published by the Payment Service (`PaymentProcessedEvent`). Contains `bookingId`, `status` (SUCCESS/FAILED), and `transactionId`.
 
 ```mermaid
 sequenceDiagram
-    participant UserA
-    participant UserB
-    participant BookingSvc
-    participant Redis
+    autonumber
+    actor User
+    participant Gateway as API Gateway
+    participant BookingSvc as Booking Service
+    participant Redis as Redis Cache
+    participant Kafka as Apache Kafka
+    participant PaymentSvc as Payment Service
+    participant NotifSvc as Notification Service
 
-    UserA->>BookingSvc: Request Seat A1
-    UserB->>BookingSvc: Request Seat A1 (Same Time)
+    User->>Gateway: POST /bookings (Seats, ShowId)
+    Gateway->>BookingSvc: Forward Request with Auth Headers
+    
+    critical Distributed Lock & Local DB Save
+        BookingSvc->>Redis: Acquire Lock (SETNX)
+        BookingSvc->>BookingSvc: Save Local Booking (PENDING)
+    end
 
-    BookingSvc->>Redis: SETNX lock:show_1_seat_A1
-    Redis-->>BookingSvc: Success (True)
+    BookingSvc->>Kafka: Publish BookingPlacedEvent
+    
+    activate PaymentSvc
+    Kafka-->>PaymentSvc: Consume BookingPlacedEvent
+    PaymentSvc->>PaymentSvc: Process Payment
+    PaymentSvc->>Kafka: Publish PaymentProcessedEvent (SUCCESS/FAILED)
+    deactivate PaymentSvc
 
-    BookingSvc->>Redis: SETNX lock:show_1_seat_A1
-    Redis-->>BookingSvc: Fail (False)
+    par 4a. Complete Booking State
+        Kafka-->>BookingSvc: Consume PaymentProcessedEvent
+        alt Status == SUCCESS
+            BookingSvc->>BookingSvc: Update Status to CONFIRMED
+        else Status == FAILED (Compensation Flow)
+            BookingSvc->>BookingSvc: Update Status to CANCELLED
+            BookingSvc->>Redis: Release Seat Locks
+            BookingSvc->>BookingSvc: Clear ShowSeat DB Records
+        end
+    and 4b. Notify User
+        Kafka-->>NotifSvc: Consume PaymentProcessedEvent
+        NotifSvc->>NotifSvc: Send SMTP Email (Success/Failure)
+    end
 
-    BookingSvc->>UserA: 200 OK (Booking Created)
-    BookingSvc->>UserB: 409 Conflict (Seat Locked)
+    BookingSvc-->>User: Return 200 OK with Booking Status
+
 ```
+
+---
+
+## Concurrency & Distributed Locking
+
+To prevent race conditions (double-booking the same seat), TicketHub implements **Distributed Locking** using Redis `StringRedisTemplate`.
+
+### Implementation Details
+
+1. **Lock Key Generation:** Generates a specific key per seat: `"lock:show:{showId}:seat:{seatNumber}"`.
+2. **Atomic Acquisition:** Uses Redis's `setIfAbsent` (`SETNX`) to ensure only one thread successfully acquires the seat.
+3. **TTL (Time To Live):** Locks are set with a strict **10-minute TTL** (`Duration.ofMinutes(10)`) to prevent deadlocks if the service crashes mid-transaction.
+4. **Fail-Fast Mechanism:** If `setIfAbsent` returns false (seat is taken), the `RedisLockServiceImpl` rolls back any successfully locked seats in the current batch and throws a `RuntimeException`. The `GlobalExceptionHandler` immediately translates this to an HTTP 500 response, preventing unnecessary database load. *(Note: Future roadmap includes mapping this to a 409 Conflict).*
+
+---
+
+## Resilience & Error Handling
+
+* **Global Exception Handling:** All services use a `@RestControllerAdvice` to intercept uncaught runtime exceptions and return a standardized JSON error format (timestamp, status, error, message), preventing stack trace leaks.
+* **Saga Compensation (Rollbacks):** Instead of distributed DB rollbacks, the system handles failures via Kafka events. If the Payment Service fails, it emits a `FAILED` event. The Booking Service automatically reacts by marking the booking `CANCELLED`, releasing Redis locks, and deleting the reserved `ShowSeat` allocations from PostgreSQL.
+* **Future Roadmap:** Integration of Resilience4j for Circuit Breaking on synchronous Feign Client calls (e.g., API Gateway to Catalog Service) and Dead Letter Queues (DLQ) for stalled sagas.
+
+---
+
+## API Endpoints
+
+### User Service (Auth & Identity)
+
+| Method | Endpoint | Description | Request Payload |
+| --- | --- | --- | --- |
+| **POST** | `/auth/register` | Register a new User | `RegisterRequest` |
+| **POST** | `/auth/login` | Authenticate & get JWT | `AuthenticationRequest` |
+| **POST** | `/admin/register` | Register an Admin *(Req. `X-User-Role`)* | `RegisterRequest` |
+| **GET** | `/users/status` | Health Check | *None* |
+
+### Catalog Service
+
+| Method | Endpoint | Description | Request Payload |
+| --- | --- | --- | --- |
+| **GET** | `/movies` | Get all Movies | *None* |
+| **POST** | `/movies` | Add a new Movie (Admin) | `MovieDto` |
+| **GET** | `/theatres` | Get Theatres *(Supports `?city=`)* | *None* |
+| **POST** | `/theatres/{id}/halls` | Add a Hall to a Theatre | `HallDto (includes SeatLayout)` |
+| **PUT** | `/halls/{id}/seats` | Configure Seat Layout | `SeatLayout` |
+| **GET** | `/shows` | Get scheduled Shows *(Params: city, movieId)* | *None* |
+| **POST** | `/shows` | Schedule a Show (Admin) | `ScheduleShowRequest` |
+
+### Booking Service
+
+| Method | Endpoint | Description | Request Payload |
+| --- | --- | --- | --- |
+| **POST** | `/bookings` | Create Booking *(Req. `X-User-Id`, `Email`)* | `CreateBookingRequest` |
+| **GET** | `/bookings/{bookingId}` | Get Booking Status | *None* |
+| **GET** | `/bookings/show/{showId}` | Get Show Details with locked seats | *None* |
+
+---
+
+## Observability & Monitoring
+
+The system features a healthy service mesh with full telemetry.
+
+* **Prometheus:** Real-time metrics collection from all service `/actuator/prometheus` endpoints.
+* **Grafana:** Visualizes JVM health, CPU load, and Kafka consumer lag.
+* **Zipkin:** Tracks distributed requests across service boundaries via Trace IDs.
+
+| Tool | URL | Description |
+| --- | --- | --- |
+| **Grafana** | `http://localhost:3000` | Dashboards (Login: admin/admin) |
+| **Prometheus** | `http://localhost:9090` | Metrics & Target Status |
+| **Zipkin** | `http://localhost:9411` | Distributed Tracing UI |
+
+---
 
 ## How to Run
 
 ### Prerequisites
 
-- Docker & Docker Compose
-- Java 17+ (Optional, if running locally)
+* Docker & Docker Compose
+* Java 17+ (Optional, if running locally outside containers)
 
 ### Quick Start (Docker)
 
-1.  Clone the repository:
-    ```bash
-    git clone [https://github.com/your-username/ticket-hub.git](https://github.com/your-username/ticket-hub.git)
-    cd ticket-hub/backend
-    ```
-2.  Build and run all services:
-    ```bash
-    docker-compose up --build -d
-    ```
-3.  Access the services:
-    - **Swagger UI:** [http://localhost:8080/swagger-ui.html](http://localhost:8080/swagger-ui.html)
-    - **Eureka Dashboard:** [http://localhost:8761](http://localhost:8761)
+1. Clone the repository:
 
-## API Endpoints
+```bash
+git clone https://github.com/jayantt23/ticket-hub.git
+cd ticket-hub/backend
 
-### Auth
+```
 
-| Method   | Endpoint          | Description                               |
-| :------- | :---------------- | :---------------------------------------- |
-| **POST** | `/auth/register`  | Register a new User                       |
-| **POST** | `/auth/login`     | Authenticate & get JWT                    |
-| **POST** | `/admin/register` | Register a new Admin (Requires Admin JWT) |
-| **GET**  | `/users/status`   | User Service Health Check                 |
+2. Build and run all services:
 
-### Catalog
+```bash
+docker-compose up --build -d
 
-| Method   | Endpoint               | Description                                         |
-| :------- | :--------------------- | :-------------------------------------------------- |
-| **GET**  | `/movies`              | Get all Movies                                      |
-| **GET**  | `/movies/{id}`         | Get specific Movie details                          |
-| **POST** | `/movies`              | Add a new Movie (Admin)                             |
-| **GET**  | `/theatres`            | Get all Theatres                                    |
-| **GET**  | `/theatres/{id}`       | Get specific Theatre details                        |
-| **POST** | `/theatres`            | Add a new Theatre (Admin)                           |
-| **GET**  | `/theatres/{id}/halls` | Get all Halls in a specific Theatre                 |
-| **POST** | `/theatres/{id}/halls` | Add a Hall to a Theatre (Admin)                     |
-| **PUT**  | `/halls/{id}/seats`    | Configure Seat Layout (Admin)                       |
-| **GET**  | `/shows`               | Get all scheduled Shows params(city, movieId, date) |
-| **GET**  | `/shows/{id}`          | Get details on a specific Show                      |
-| **POST** | `/shows`               | Schedule a Show (Admin)                             |
+```
 
-### Booking
+3. Access the core services:
 
-| Method   | Endpoint                  | Description                                      |
-| :------- | :------------------------ | :----------------------------------------------- |
-| **GET**  | `/bookings`               | Health Check                                     |
-| **POST** | `/bookings`               | Create a Booking (Initiates Redis Lock)          |
-| **GET**  | `/bookings/{id}`          | Get Booking Status (Pending/Confirmed/Cancelled) |
-| **GET**  | `/bookings/show/{showId}` | Get Show Details                                 |
+* **API Gateway (Entrypoint):** `http://localhost:8080`
+* **Eureka Dashboard:** `http://localhost:8761`
