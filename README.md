@@ -7,6 +7,7 @@ TicketHub is a scalable, distributed ticket booking system built with **Spring B
 * **Microservices Architecture:** Deployed modular services using Spring Cloud.
 * **Event-Driven Sagas:** Orchestrated asynchronous booking & payment flows using Kafka.
 * **Concurrency Handling:** Solved the "Double Booking" race condition using **Redis `SETNX` Locks**.
+* **Fault Tolerance & Resilience:** Implemented Resilience4j circuit breakers for synchronous calls and **Dead Letter Queues (DLQ)** for failed Kafka events.
 * **Gateway & Security:** Centralized API Gateway with JWT Authentication.
 * **Service Discovery:** Dynamic scaling with Netflix Eureka.
 * **Global Error Handling:** Standardized REST exception handling across all services.
@@ -17,6 +18,7 @@ TicketHub is a scalable, distributed ticket booking system built with **Spring B
 * **Messaging:** Apache Kafka, Zookeeper
 * **Database:** PostgreSQL (Per-service DB pattern), Redis (Caching & Locking)
 * **Infrastructure:** Docker, Docker Compose
+* **Resilience:** Resilience4j
 * **Observability:** Prometheus, Grafana, Zipkin, Micrometer
 * **Testing:** JUnit 5, Mockito, JMeter (Concurrency)
 
@@ -70,6 +72,7 @@ TicketHub uses an asynchronous, choreographed **Saga Design Pattern** managed vi
 
 * **`booking-events` Topic:** Published by the Booking Service (`BookingPlacedEvent`). Contains `bookingId`, `userId`, `amount`, and `email`.
 * **`payment-events` Topic:** Published by the Payment Service (`PaymentProcessedEvent`). Contains `bookingId`, `status` (SUCCESS/FAILED), and `transactionId`.
+* **`*.dlq` Topics (Dead Letter Queues):** Catches unprocessable messages or stalled sagas for manual review and replay.
 
 ```mermaid
 sequenceDiagram
@@ -127,15 +130,16 @@ To prevent race conditions (double-booking the same seat), TicketHub implements 
 1. **Lock Key Generation:** Generates a specific key per seat: `"lock:show:{showId}:seat:{seatNumber}"`.
 2. **Atomic Acquisition:** Uses Redis's `setIfAbsent` (`SETNX`) to ensure only one thread successfully acquires the seat.
 3. **TTL (Time To Live):** Locks are set with a strict **10-minute TTL** (`Duration.ofMinutes(10)`) to prevent deadlocks if the service crashes mid-transaction.
-4. **Fail-Fast Mechanism:** If `setIfAbsent` returns false (seat is taken), the `RedisLockServiceImpl` rolls back any successfully locked seats in the current batch and throws a `RuntimeException`. The `GlobalExceptionHandler` immediately translates this to an HTTP 500 response, preventing unnecessary database load. *(Note: Future roadmap includes mapping this to a 409 Conflict).*
+4. **Fail-Fast Mechanism:** If `setIfAbsent` returns false (seat is taken), the `RedisLockServiceImpl` immediately rolls back any successfully locked seats in the current batch and throws a custom exception. The `GlobalExceptionHandler` translates this into an **HTTP 409 Conflict** response, gracefully rejecting the request and preventing unnecessary database load.
 
 ---
 
 ## Resilience & Error Handling
 
 * **Global Exception Handling:** All services use a `@RestControllerAdvice` to intercept uncaught runtime exceptions and return a standardized JSON error format (timestamp, status, error, message), preventing stack trace leaks.
+* **Circuit Breaking:** Integrated **Resilience4j** to wrap synchronous Feign Client calls (e.g., API Gateway to Catalog Service). This provides failbacks and prevents cascading failures if a downstream service experiences high latency or downtime.
 * **Saga Compensation (Rollbacks):** Instead of distributed DB rollbacks, the system handles failures via Kafka events. If the Payment Service fails, it emits a `FAILED` event. The Booking Service automatically reacts by marking the booking `CANCELLED`, releasing Redis locks, and deleting the reserved `ShowSeat` allocations from PostgreSQL.
-* **Future Roadmap:** Integration of Resilience4j for Circuit Breaking on synchronous Feign Client calls (e.g., API Gateway to Catalog Service) and Dead Letter Queues (DLQ) for stalled sagas.
+* **Dead Letter Queues (DLQ):** Unprocessable Kafka events (e.g., deserialization failures or exhausted retry attempts) are automatically routed to DLQ topics to prevent message blockage and allow for manual intervention.
 
 ---
 

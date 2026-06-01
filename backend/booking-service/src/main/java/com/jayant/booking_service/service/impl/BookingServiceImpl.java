@@ -5,6 +5,7 @@ import com.jayant.booking_service.dto.*;
 import com.jayant.booking_service.entity.Booking;
 import com.jayant.booking_service.entity.BookingStatus;
 import com.jayant.booking_service.entity.ShowSeat;
+import com.jayant.booking_service.exception.SeatAlreadyBookedException;
 import com.jayant.booking_service.repository.BookingRepository;
 import com.jayant.booking_service.repository.ShowSeatRepository;
 import com.jayant.booking_service.service.BookingProducer;
@@ -42,8 +43,8 @@ public class BookingServiceImpl implements BookingService {
                 request.getUserId()
         );
 
-        if(!locked) {
-            throw new RuntimeException("Some seats are already selected by another user.");
+        if (!locked) {
+            throw new SeatAlreadyBookedException("Some seats are already selected by another user. Please choose different seats.");
         }
 
         try {

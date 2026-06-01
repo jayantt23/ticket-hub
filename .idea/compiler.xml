@@ -19,8 +19,8 @@
         <module name="user-service" />
         <module name="notification-service" />
         <module name="service-registry" />
-        <module name="booking-service" />
         <module name="catalog-service" />
+        <module name="booking-service" />
       </profile>
     </annotationProcessing>
   </component>

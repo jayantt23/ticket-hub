@@ -5,7 +5,7 @@ import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
-@FeignClient(name = "CATALOG-SERVICE")
+@FeignClient(name = "CATALOG-SERVICE", fallback = CatalogClientFallback.class)
 public interface CatalogClient {
 
     @GetMapping("/shows/{showId}")
